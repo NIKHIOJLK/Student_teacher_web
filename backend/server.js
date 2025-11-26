@@ -1,7 +1,7 @@
-// backend/server.js
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
@@ -11,10 +11,10 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-// ⭐ CORS FIX FOR VERCEL + RAILWAY
+// ---- CORS FIX (WORKS for Vercel + Railway) ----
 const allowedOrigins = [
-  "https://student-teacher-web.vercel.app", // live frontend
-  "http://localhost:5173", // local frontend
+  "https://student-teacher-web.vercel.app",
+  "http://localhost:5173"
 ];
 
 app.use((req, res, next) => {
@@ -23,26 +23,33 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
-  // 🔥 IMPORTANT — return 200 BEFORE hitting routes
-  if (req.method === "OPTIONS") return res.sendStatus(200);
+  // ⭐ SUPER IMPORTANT — respond to preflight here
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
   next();
 });
 
+// -----------------------------------------------
+
 app.use(express.json());
 
-// Test
 app.get("/", (req, res) => res.send("Backend is running 🚀"));
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 
-// DB connect + Start server
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -54,4 +61,5 @@ const start = async () => {
     process.exit(1);
   }
 };
+
 start();
