@@ -6,7 +6,7 @@ import "./index.css";
 
 import axios from "axios";
 // 🌍 Set global API base URL for frontend
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || "https://studentteacherweb-production.up.railway.app";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || "https://studentteacherweb-production.up.railway.app/api";
 // 🚀 Important: always send token automatically if exists
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
