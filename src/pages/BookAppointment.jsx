@@ -17,7 +17,7 @@ const BookAppointment = () => {
   useEffect(() => {
     const loadTeachers = async () => {
       try {
-        const res = await axios.get("/api/teachers");
+        const res = await axios.get("/api/auth/teachers");
         setTeachers(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("load teachers", err);
