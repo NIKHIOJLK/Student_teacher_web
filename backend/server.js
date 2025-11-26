@@ -1,7 +1,6 @@
 // backend/server.js
 import express from "express";
 import mongoose from "mongoose";
-import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -12,16 +11,25 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-// ⭐ Allow frontend (Vercel) + preflight (OPTIONS)
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
+// ⭐ CORS FIX FOR VERCEL + RAILWAY
+const allowedOrigins = [
+  "https://student-teacher-web.vercel.app", // live frontend
+  "http://localhost:5173", // local frontend
+];
 
-// ⭐ Handle preflight
-app.options("*", cors());
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  // 🔥 IMPORTANT — return 200 BEFORE hitting routes
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
 
 app.use(express.json());
 
@@ -34,7 +42,7 @@ app.use("/api/availability", availabilityRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 
-// DB connect
+// DB connect + Start server
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
