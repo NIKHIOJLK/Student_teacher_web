@@ -1,6 +1,5 @@
 import express from "express";
 import mongoose from "mongoose";
-import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -11,39 +10,41 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-// 🔥 CORS FIX — allow ALL origins temporarily
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+/* ------ CORS — allow your frontend origin ------- */
+const allowedOrigins = [
+  "https://student-teacher-web.vercel.app",
+  "http://localhost:5173"
+];
 
-  // stop preflight from failing
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
   if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
+/* ---------------- Parsers ---------------- */
 app.use(express.json());
 
-// Test
-app.get("/", (req, res) => res.send("Backend is running 🚀"));
-
-// Routes
+/* ---------------- Routes ---------------- */
+app.get("/", (req, res) => res.send("Backend running 🚀"));
 app.use("/api/auth", authRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 
-// DB connect
-const start = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("MongoDB Connected");
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
-  }
-};
-start();
+/* ---------------- Database ---------------- */
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.error("Mongo Error:", err));
+
+/* ❗ DO NOT USE app.listen() on Railway ❗ */
+/* Instead, export app for the platform */
+export default app;
