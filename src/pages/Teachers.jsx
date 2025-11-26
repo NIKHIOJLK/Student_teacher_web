@@ -16,7 +16,7 @@ const Teachers = () => {
   // Fetch all teachers
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get("/api/auth/teachers");
+      const res = await axios.get("/api/teachers");
 
       if (Array.isArray(res.data)) {
         setTeachers(res.data);

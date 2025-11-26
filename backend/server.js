@@ -12,25 +12,20 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-// 🟢 allow Vercel frontend
-const allowedOrigin = process.env.FRONTEND_URL;
+// ⭐ Allow frontend (Vercel) + preflight (OPTIONS)
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
 
-// 🔥 FULL CORS FIX
-app.use(
-  cors({
-    origin: allowedOrigin,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-
-// make sure OPTIONS requests don't block
+// ⭐ Handle preflight
 app.options("*", cors());
 
 app.use(express.json());
 
-// Test route
+// Test
 app.get("/", (req, res) => res.send("Backend is running 🚀"));
 
 // Routes
@@ -39,17 +34,16 @@ app.use("/api/availability", availabilityRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Database + Start server
+// DB connect
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("✅ MongoDB Connected");
+    console.log("MongoDB Connected");
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
   } catch (err) {
-    console.error("❌ Database Error", err);
+    console.error(err);
     process.exit(1);
   }
 };
-
 start();

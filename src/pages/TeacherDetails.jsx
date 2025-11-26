@@ -16,7 +16,7 @@ const TeacherDetails = () => {
   // Fetch teacher info
   const fetchTeacher = async () => {
     try {
-      const res = await axios.get(`/api/auth/teacher/${id}`);
+      const res = await axios.get(`/api/teacher/${id}`);
       setTeacher(res.data);
     } catch (err) {
       console.error("Teacher fetch error:", err);
