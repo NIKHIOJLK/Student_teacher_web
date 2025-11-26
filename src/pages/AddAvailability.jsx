@@ -26,7 +26,7 @@ const AddAvailability = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/availability",
+        "/api/availability",
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -14,7 +14,7 @@ const TeacherAppointments = () => {
       setLoading(true);
 
       const res = await axios.get(
-        `http://localhost:5000/api/appointments/teacher?teacher=${teacherName}`,
+        `/api/appointments/teacher?teacher=${teacherName}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

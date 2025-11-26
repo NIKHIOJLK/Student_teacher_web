@@ -16,7 +16,7 @@ const StudentDashboard = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/appointments/my?email=${studentEmail}`,
+          `/api/appointments/my?email=${studentEmail}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAppointments(res.data.slice(0, 3)); // show only 3

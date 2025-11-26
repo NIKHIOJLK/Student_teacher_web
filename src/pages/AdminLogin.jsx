@@ -24,7 +24,7 @@ const AdminLogin = () => {
 
     try {
       // Use unified login endpoint (authController handles admin lookup)
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post("/api/auth/login", {
         email: form.email,
         password: form.password,
       });

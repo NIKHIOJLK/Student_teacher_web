@@ -11,7 +11,7 @@ const AdminAppointments = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/appointments", { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get("/api/admin/appointments", { headers: { Authorization: `Bearer ${token}` } });
         setAppointments(res.data || []);
       } catch (err) {
         console.error("load appointments:", err);

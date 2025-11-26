@@ -10,7 +10,7 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/users", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get("/api/admin/users", { headers: { Authorization: `Bearer ${token}` } });
       setUsers(res.data || []);
     } catch (err) {
       console.error("fetchUsers error:", err);
