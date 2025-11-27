@@ -1,11 +1,14 @@
+// src/pages/TeacherAppointments.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const TeacherAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const teacherName = localStorage.getItem("name");   // teacher logged-in name
+  const teacherName = localStorage.getItem("name");
   const token = localStorage.getItem("token");
 
   // Fetch all appointments for this teacher
@@ -14,13 +17,13 @@ const TeacherAppointments = () => {
       setLoading(true);
 
       const res = await axios.get(
-        `/api/appointments/teacher?teacher=${teacherName}`,
+        `${API_URL}/appointments/teacher?teacher=${teacherName}`,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      setAppointments(res.data);
+      setAppointments(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching teacher appointments:", err);
       alert("Failed to load your appointment requests.");
@@ -33,9 +36,11 @@ const TeacherAppointments = () => {
   const updateStatus = async (id, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/appointments/${id}`,
+        `${API_URL}/appointments/${id}`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       fetchAppointments(); // refresh list
@@ -60,7 +65,6 @@ const TeacherAppointments = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-20 px-6">
       <div className="max-w-6xl mx-auto">
-
         <h1 className="text-4xl font-bold text-gray-800 mb-10 text-center">
           Incoming Student Appointments
         </h1>
@@ -98,29 +102,24 @@ const TeacherAppointments = () => {
                       {a.message || "—"}
                     </td>
 
-                    {/* STATUS BADGE */}
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium
-                          ${
-                            a.status === "Approved"
-                              ? "bg-green-100 text-green-700"
-                              : a.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : a.status === "Rejected"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-gray-100 text-gray-700"
-                          }
-                        `}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          a.status === "Approved"
+                            ? "bg-green-100 text-green-700"
+                            : a.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : a.status === "Rejected"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
                       >
                         {a.status}
                       </span>
                     </td>
 
-                    {/* ACTION BUTTONS */}
                     <td className="px-6 py-4 text-center space-x-3">
-
-                      {/* Approve */}
+                      {/* Approve/Reject */}
                       {a.status === "Pending" && (
                         <>
                           <button
@@ -129,7 +128,6 @@ const TeacherAppointments = () => {
                           >
                             Approve
                           </button>
-
                           <button
                             className="px-4 py-1 bg-red-600 text-white rounded-full text-sm hover:bg-red-700"
                             onClick={() => updateStatus(a._id, "Rejected")}
@@ -139,7 +137,7 @@ const TeacherAppointments = () => {
                         </>
                       )}
 
-                      {/* Optionally show a complete button */}
+                      {/* Mark Completed */}
                       {a.status === "Approved" && (
                         <button
                           className="px-4 py-1 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700"
@@ -148,7 +146,6 @@ const TeacherAppointments = () => {
                           Mark Completed
                         </button>
                       )}
-                      
                     </td>
                   </tr>
                 ))}
@@ -156,7 +153,6 @@ const TeacherAppointments = () => {
             </table>
           </div>
         )}
-
       </div>
     </section>
   );

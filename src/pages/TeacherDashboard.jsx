@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const TeacherDashboard = () => {
   const navigate = useNavigate();
 
@@ -16,19 +18,21 @@ const TeacherDashboard = () => {
     const loadAppointments = async () => {
       try {
         const res = await axios.get(
-          `/api/appointments/teacher?teacher=${teacherName}`,
+          `${API_URL}/appointments/teacher?teacher=${teacherName}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setAppointments(res.data.slice(0, 3)); // show 3
+
+        const data = Array.isArray(res.data) ? res.data : [];
+        setAppointments(data.slice(0, 3)); // show 3 latest
       } catch (e) {
-        console.log(e);
+        console.log("Teacher dashboard appointment error:", e);
       } finally {
         setLoading(false);
       }
     };
 
     loadAppointments();
-  }, []);
+  }, [teacherName, token]);
 
   if (loading)
     return (
@@ -69,19 +73,17 @@ const TeacherDashboard = () => {
             className="bg-white shadow-md p-6 rounded-2xl hover:shadow-xl transition border"
           >
             <h2 className="text-xl font-semibold mb-2 text-purple-700">Teacher Page</h2>
-            <p className="text-gray-600 text-sm">View all teachers (public page)</p>
+            <p className="text-gray-600 text-sm">View all teachers</p>
           </button>
         </div>
 
-        {/* Incoming Appointments */}
+        {/* Recent Appointments */}
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
           Recent Appointment Requests
         </h2>
 
         {appointments.length === 0 ? (
-          <p className="text-gray-600">
-            No appointment requests yet.
-          </p>
+          <p className="text-gray-600">No appointment requests yet.</p>
         ) : (
           <div className="space-y-4">
             {appointments.map((a) => (

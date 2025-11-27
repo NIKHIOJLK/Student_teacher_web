@@ -6,6 +6,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip
 } from "recharts";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AdminDashboard = () => {
   const token = localStorage.getItem("token");
   const [users, setUsers] = useState([]);
@@ -17,17 +19,18 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         const [uRes, aRes] = await Promise.all([
-          axios.get("/api/admin/users", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("/api/admin/appointments", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${API_URL}/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${API_URL}/admin/appointments`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
-        setUsers(uRes.data || []);
-        setAppointments(aRes.data || []);
+        setUsers(Array.isArray(uRes.data) ? uRes.data : []);
+        setAppointments(Array.isArray(aRes.data) ? aRes.data : []);
       } catch (err) {
         console.error("AdminDashboard load error:", err);
       } finally {
         setLoading(false);
       }
     };
+
     load();
   }, [token]);
 
@@ -44,7 +47,7 @@ const AdminDashboard = () => {
     { name: "Approved", value: statusCounts.Approved || 0 },
     { name: "Pending", value: statusCounts.Pending || 0 },
     { name: "Rejected", value: statusCounts.Rejected || 0 },
-    { name: "Completed", value: statusCounts.Completed || 0 },
+    { name: "Completed", value: statusCounts.Completed || 0 }
   ];
 
   const COLORS = ["#34D399", "#F59E0B", "#EF4444", "#9CA3AF"];
@@ -52,7 +55,7 @@ const AdminDashboard = () => {
   const barData = [
     { name: "Students", value: totalStudents },
     { name: "Teachers", value: totalTeachers },
-    { name: "Appointments", value: totalAppointments },
+    { name: "Appointments", value: totalAppointments }
   ];
 
   if (loading)
@@ -63,7 +66,7 @@ const AdminDashboard = () => {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
 
-        {/* Stats */}
+        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <h3 className="text-sm text-gray-500">Total Users</h3>
@@ -94,6 +97,7 @@ const AdminDashboard = () => {
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
           {/* Pie Chart */}
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <h3 className="text-lg font-semibold mb-4">Appointment Status</h3>
