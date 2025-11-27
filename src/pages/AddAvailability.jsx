@@ -1,5 +1,8 @@
+// src/pages/AddAvailability.jsx
 import React, { useState } from "react";
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const AddAvailability = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +29,7 @@ const AddAvailability = () => {
 
     try {
       await axios.post(
-        "/api/availability",
+        `${API_URL}/availability`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
