@@ -1,7 +1,8 @@
-// src/pages/Teachers.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Teachers = () => {
   const [teachers, setTeachers] = useState([]);
@@ -16,7 +17,7 @@ const Teachers = () => {
   // Fetch all teachers
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get("/api/auth/teachers");
+      const res = await axios.get(`${API_URL}/auth/teachers`);
 
       if (Array.isArray(res.data)) {
         setTeachers(res.data);
@@ -34,48 +35,43 @@ const Teachers = () => {
   };
 
   // Fetch availability for each teacher
-const fetchAvailabilityForTeachers = async () => {
-  try {
-    let map = {};
+  const fetchAvailabilityForTeachers = async () => {
+    try {
+      let map = {};
 
-    for (const t of teachers) {
-      const res = await axios.get(`/api/availability/${t._id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      for (const t of teachers) {
+        const res = await axios.get(`${API_URL}/availability/${t._id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-      const data = Array.isArray(res.data) ? res.data : [];
+        const data = Array.isArray(res.data) ? res.data : [];
 
-      // filter next 7 days
-      const next7 = data.filter((slot) => {
-        const now = new Date();
-        const slotDate = new Date(slot.date);
-        const diff = (slotDate - now) / (1000 * 60 * 60 * 24);
-        return diff >= 0 && diff <= 7;
-      });
+        const next7 = data.filter((slot) => {
+          const now = new Date();
+          const slotDate = new Date(slot.date);
+          const diff = (slotDate - now) / (1000 * 60 * 60 * 24);
+          return diff >= 0 && diff <= 7;
+        });
 
-      map[t._id] = next7.slice(0, 2);
+        map[t._id] = next7.slice(0, 2);
+      }
+
+      setAvailability(map);
+    } catch (err) {
+      console.error("Availability fetch error:", err);
     }
+  };
 
-    setAvailability(map);
-  } catch (err) {
-    console.error("Availability fetch error:", err);
-  }
-};
-
-
-  // Initial load
   useEffect(() => {
     fetchTeachers();
   }, []);
 
-  // load availability after teachers arrive
   useEffect(() => {
     if (teachers.length > 0) {
       fetchAvailabilityForTeachers().then(() => setLoading(false));
     }
   }, [teachers]);
 
-  // Search filter
   useEffect(() => {
     if (search.trim() === "") {
       setFiltered(teachers);

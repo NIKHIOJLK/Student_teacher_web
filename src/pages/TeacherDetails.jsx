@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const TeacherDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,37 +18,39 @@ const TeacherDetails = () => {
   // Fetch teacher info
   const fetchTeacher = async () => {
     try {
-      const res = await axios.get(`/api/auth/teacher/${id}`);
+      const res = await axios.get(`${API_URL}/auth/teachers/${id}`);
       setTeacher(res.data);
     } catch (err) {
       console.error("Teacher fetch error:", err);
+      setTeacher(null);
     }
   };
 
   // Fetch availability
   const fetchAvailability = async () => {
     try {
-      const res = await axios.get(`/api/availability/${id}`, {
+      const res = await axios.get(`${API_URL}/availability/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const next7 = new Date();
-      next7.setDate(today.getDate() + 7);
-      next7.setHours(23, 59, 59, 999);
+      const max = new Date();
+      max.setDate(today.getDate() + 7);
+      max.setHours(23, 59, 59, 999);
 
       const filtered = res.data
         .filter((slot) => {
           const slotDate = new Date(slot.date);
-          return slotDate >= today && slotDate <= next7;
+          return slotDate >= today && slotDate <= max;
         })
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
       setAvailability(filtered);
     } catch (err) {
       console.error("Availability fetch error:", err);
+      setAvailability([]);
     }
   };
 
@@ -79,7 +83,6 @@ const TeacherDetails = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-20 px-6">
       <div className="max-w-3xl mx-auto bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
-
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold text-gray-900">{teacher.name}</h1>
