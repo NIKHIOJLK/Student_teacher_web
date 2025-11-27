@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const BookAppointment = () => {
   const token = localStorage.getItem("token");
   const studentName = localStorage.getItem("name");
@@ -17,7 +19,7 @@ const BookAppointment = () => {
   useEffect(() => {
     const loadTeachers = async () => {
       try {
-        const res = await axios.get("/api/auth/teachers");
+        const res = await axios.get(`${API_URL}/auth/teachers`);
         setTeachers(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("load teachers", err);
@@ -31,7 +33,7 @@ const BookAppointment = () => {
     setSlots([]);
     setSelectedSlot(null);
     try {
-      const res = await axios.get(`/api/availability/${teacherId}`, {
+      const res = await axios.get(`${API_URL}/availability/${teacherId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSlots(Array.isArray(res.data) ? res.data : []);
@@ -47,18 +49,21 @@ const BookAppointment = () => {
   };
 
   const handleBook = async () => {
-    if (!selectedSlot) return setStatusMsg("Pick a slot first.");
+    if (!selectedSlot) {
+      setStatusMsg("Pick a slot first.");
+      return;
+    }
 
-    // find teacher object to get teacher name
-    const teacherObj = teachers.find(t => t._id === selectedTeacher);
+    const teacherObj = teachers.find((t) => t._id === selectedTeacher);
+    if (!teacherObj) return;
 
     try {
       await axios.post(
-        "/api/appointments/book",
+        `${API_URL}/appointments/book`,
         {
           studentName,
           studentEmail,
-          teacher: teacherObj.name, // 🔥 SEND TEACHER NAME
+          teacher: teacherObj.name,
           department: teacherObj.department,
           date: selectedSlot.date,
           time: `${selectedSlot.startTime} - ${selectedSlot.endTime}`,
@@ -84,9 +89,13 @@ const BookAppointment = () => {
         <div className="space-y-4">
           <div>
             <label className="block mb-1">Select Teacher</label>
-            <select value={selectedTeacher} onChange={handleTeacherChange} className="w-full border rounded-xl px-4 py-3">
+            <select
+              value={selectedTeacher}
+              onChange={handleTeacherChange}
+              className="w-full border rounded-xl px-4 py-3"
+            >
               <option value="">-- Choose a teacher --</option>
-              {teachers.map(t => (
+              {teachers.map((t) => (
                 <option key={t._id} value={t._id}>
                   {t.name} — {t.department}
                 </option>
@@ -100,16 +109,20 @@ const BookAppointment = () => {
               <p className="text-gray-500">No slots available.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {slots.map(s => (
+                {slots.map((s) => (
                   <button
                     key={s._id}
                     onClick={() => setSelectedSlot(s)}
                     className={`text-left p-3 rounded-xl border ${
-                      selectedSlot && selectedSlot._id === s._id ? "bg-blue-100 border-blue-400" : "bg-gray-50"
+                      selectedSlot && selectedSlot._id === s._id
+                        ? "bg-blue-100 border-blue-400"
+                        : "bg-gray-50"
                     }`}
                   >
                     <div className="font-semibold">{s.date}</div>
-                    <div className="text-sm">{s.startTime} - {s.endTime}</div>
+                    <div className="text-sm">
+                      {s.startTime} - {s.endTime}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -118,13 +131,25 @@ const BookAppointment = () => {
 
           <div>
             <label className="block mb-1">Message (optional)</label>
-            <textarea value={message} onChange={(e) => setMessage(e.target.value)} className="w-full border rounded-xl px-4 py-3" rows={4} />
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full border rounded-xl px-4 py-3"
+              rows={4}
+            />
           </div>
 
-          {statusMsg && <div className="p-3 rounded bg-yellow-100 text-yellow-800">{statusMsg}</div>}
+          {statusMsg && (
+            <div className="p-3 rounded bg-yellow-100 text-yellow-800">
+              {statusMsg}
+            </div>
+          )}
 
           <div className="flex justify-end gap-3">
-            <button onClick={handleBook} className="bg-blue-600 text-white px-6 py-2 rounded-full">
+            <button
+              onClick={handleBook}
+              className="bg-blue-600 text-white px-6 py-2 rounded-full"
+            >
               Book Selected Slot
             </button>
           </div>

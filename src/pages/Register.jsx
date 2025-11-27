@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import thaparlogo from "../assets/thaparlogo.png";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Register = () => {
   const [role, setRole] = useState("student");
   const [formData, setFormData] = useState({
@@ -22,9 +24,8 @@ const Register = () => {
       return;
     }
 
-    // Send data to backend
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, role }),
@@ -38,7 +39,8 @@ const Register = () => {
         alert(data.error || "Registration failed");
       }
     } catch (err) {
-      alert("Server error — check backend!");
+      console.error("Register error:", err);
+      alert("Server error — please try again later");
     }
   };
 

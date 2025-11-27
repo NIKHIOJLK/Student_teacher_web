@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const MyAppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
-  const email = localStorage.getItem("email"); // ⭐ needed for query
+  const email = localStorage.getItem("email");
 
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axios.get(`/api/appointments/my?email=${email}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          `${API_URL}/appointments/my?email=${email}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
         setAppointments(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
@@ -25,7 +28,7 @@ const MyAppointmentsPage = () => {
     };
 
     load();
-  }, []);
+  }, [email, token]);
 
   if (loading)
     return <div className="p-6 text-center text-xl">Loading appointments...</div>;
@@ -44,8 +47,8 @@ const MyAppointmentsPage = () => {
                 <h2 className="font-semibold text-lg">
                   {a.teacher} — {a.department}
                 </h2>
-                <p>Date: {a.date}</p>
-                <p>Time: {a.time}</p>
+                <p>📅 Date: {a.date}</p>
+                <p>⏰ Time: {a.time}</p>
                 <p className="text-sm text-gray-600">
                   Message: {a.message || "—"}
                 </p>

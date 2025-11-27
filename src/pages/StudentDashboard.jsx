@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -16,18 +18,20 @@ const StudentDashboard = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `/api/appointments/my?email=${studentEmail}`,
+          `${API_URL}/appointments/my?email=${studentEmail}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setAppointments(res.data.slice(0, 3)); // show only 3
+
+        const data = Array.isArray(res.data) ? res.data : [];
+        setAppointments(data.slice(0, 3)); // show only 3
       } catch (err) {
-        console.log(err);
+        console.log("Student dashboard appointments fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [studentEmail, token]);
 
   if (loading)
     return (
@@ -39,7 +43,6 @@ const StudentDashboard = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-6 py-20">
       <div className="max-w-6xl mx-auto">
-
         <h1 className="text-4xl font-bold text-gray-800 mb-2">
           Welcome, {studentName?.split(" ")[0]} 👋
         </h1>
@@ -51,24 +54,36 @@ const StudentDashboard = () => {
             onClick={() => navigate("/teachers")}
             className="bg-white shadow-md p-6 rounded-2xl hover:shadow-xl transition border"
           >
-            <h2 className="text-xl font-semibold mb-2 text-blue-700">Find Teachers</h2>
-            <p className="text-gray-600 text-sm">Browse teachers & view their availability</p>
+            <h2 className="text-xl font-semibold mb-2 text-blue-700">
+              Find Teachers
+            </h2>
+            <p className="text-gray-600 text-sm">
+              Browse teachers & view their availability
+            </p>
           </button>
 
           <button
             onClick={() => navigate("/book")}
             className="bg-white shadow-md p-6 rounded-2xl hover:shadow-xl transition border"
           >
-            <h2 className="text-xl font-semibold mb-2 text-indigo-700">Book Appointment</h2>
-            <p className="text-gray-600 text-sm">Schedule a meeting with a teacher</p>
+            <h2 className="text-xl font-semibold mb-2 text-indigo-700">
+              Book Appointment
+            </h2>
+            <p className="text-gray-600 text-sm">
+              Schedule a meeting with a teacher
+            </p>
           </button>
 
           <button
             onClick={() => navigate("/myappointments")}
             className="bg-white shadow-md p-6 rounded-2xl hover:shadow-xl transition border"
           >
-            <h2 className="text-xl font-semibold mb-2 text-purple-700">My Appointments</h2>
-            <p className="text-gray-600 text-sm">View & track your appointments</p>
+            <h2 className="text-xl font-semibold mb-2 text-purple-700">
+              My Appointments
+            </h2>
+            <p className="text-gray-600 text-sm">
+              View & track your appointments
+            </p>
           </button>
         </div>
 
