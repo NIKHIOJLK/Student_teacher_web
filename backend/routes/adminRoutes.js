@@ -1,4 +1,3 @@
-// backend/routes/adminRoutes.js
 import express from "express";
 import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 import {
@@ -7,6 +6,7 @@ import {
   getAllAppointmentsAdmin,
   createAdmin
 } from "../controllers/adminController.js";
+import Appointment from "../models/Appointment.js";
 
 const router = express.Router();
 
@@ -17,7 +17,17 @@ router.get("/users", getAllUsers);
 router.delete("/users/:id", deleteUser);
 router.get("/appointments", getAllAppointmentsAdmin);
 
-// Optional create admin endpoint (protected) — you can remove if you prefer script-only creation
+// ⭐ DELETE appointment history
+router.delete("/appointments/:id", async (req, res) => {
+  try {
+    await Appointment.findByIdAndDelete(req.params.id);
+    res.json({ message: "Appointment deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete appointment" });
+  }
+});
+
+// Optional create admin
 router.post("/create", createAdmin);
 
 export default router;

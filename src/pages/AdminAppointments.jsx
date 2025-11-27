@@ -9,22 +9,38 @@ const AdminAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const loadAppointments = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/admin/appointments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAppointments(res.data || []);
+    } catch (err) {
+      console.error("load appointments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(`${API_URL}/admin/appointments`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAppointments(res.data || []);
-      } catch (err) {
-        console.error("load appointments:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadAppointments();
   }, [token]);
+
+  const deleteAppointment = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this appointment?")) return;
+
+    try {
+      await axios.delete(`${API_URL}/admin/appointments/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // remove from UI without reload
+      setAppointments((prev) => prev.filter((app) => app._id !== id));
+    } catch (err) {
+      alert("Failed to delete appointment");
+      console.error(err);
+    }
+  };
 
   if (loading)
     return (
@@ -41,7 +57,7 @@ const AdminAppointments = () => {
         {appointments.length === 0 ? (
           <p>No appointments found.</p>
         ) : (
-          <div className="bg-white rounded-2xl p-6 shadow-md">
+          <div className="bg-white rounded-2xl p-6 shadow-md overflow-x-auto">
             <table className="w-full text-left">
               <thead className="text-sm text-gray-500">
                 <tr>
@@ -50,6 +66,7 @@ const AdminAppointments = () => {
                   <th>Date</th>
                   <th>Time</th>
                   <th>Status</th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -57,9 +74,7 @@ const AdminAppointments = () => {
                   <tr key={a._id} className="border-t">
                     <td className="py-3">
                       {a.studentName}
-                      <div className="text-xs text-gray-400">
-                        {a.studentEmail}
-                      </div>
+                      <div className="text-xs text-gray-400">{a.studentEmail}</div>
                     </td>
                     <td>{a.teacher}</td>
                     <td>{a.date}</td>
@@ -76,6 +91,14 @@ const AdminAppointments = () => {
                       >
                         {a.status}
                       </span>
+                    </td>
+                    <td className="text-center py-3">
+                      <button
+                        className="px-4 py-1 bg-red-600 text-white rounded-full text-sm hover:bg-red-700"
+                        onClick={() => deleteAppointment(a._id)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -111,7 +111,7 @@ const TeacherDetails = () => {
 
                 <button
                   onClick={() =>
-                    navigate("/studentdashboard", {
+                    navigate("/student/dashboard", {
                       state: {
                         teacherId: id,
                         teacherName: teacher.name,
