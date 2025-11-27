@@ -1,4 +1,3 @@
-// backend/controllers/authController.js
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
 import bcrypt from "bcryptjs";
@@ -32,10 +31,7 @@ export const registerUser = async (req, res) => {
         email: newUser.email,
         role: newUser.role,
         department: newUser.department,
-      },
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
+      }
     });
   } catch (err) {
     console.error("registerUser error:", err);
@@ -43,13 +39,13 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// LOGIN - checks Users first, then Admins
+// LOGIN (User or Admin)
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Please provide email and password" });
 
-    // try regular user
+    // USER LOGIN
     const user = await User.findOne({ email });
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
@@ -70,21 +66,18 @@ export const loginUser = async (req, res) => {
           email: user.email,
           role: user.role,
           department: user.department,
-        },
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        }
       });
     }
 
-    // If not a User, try Admin
+    // ADMIN LOGIN
     const admin = await Admin.findOne({ email });
     if (admin) {
-      const isMatchAdmin = await bcrypt.compare(password, admin.password);
-      if (!isMatchAdmin) return res.status(400).json({ error: "Invalid email or password" });
+      const isMatch = await bcrypt.compare(password, admin.password);
+      if (!isMatch) return res.status(400).json({ error: "Invalid email or password" });
 
       const token = jwt.sign(
-        { id: admin._id, role: "admin", name: admin.email, email: admin.email },
+        { id: admin._id, role: "admin", email: admin.email },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
@@ -97,14 +90,12 @@ export const loginUser = async (req, res) => {
           name: admin.email,
           email: admin.email,
           role: "admin",
-        },
-        name: admin.email,
-        email: admin.email,
-        role: "admin",
+        }
       });
     }
 
     return res.status(400).json({ error: "Invalid email or password" });
+
   } catch (err) {
     console.error("loginUser error:", err);
     res.status(500).json({ error: "Server error during login" });
@@ -118,7 +109,7 @@ export const getTeacherById = async (req, res) => {
     if (!teacher) return res.status(404).json({ error: "Teacher not found" });
     if (teacher.role !== "teacher") return res.status(400).json({ error: "User is not a teacher" });
 
-    res.json({
+    res.status(200).json({
       id: teacher._id,
       name: teacher.name,
       email: teacher.email,
@@ -131,19 +122,18 @@ export const getTeacherById = async (req, res) => {
   }
 };
 
+// GET ALL TEACHERS (PUBLIC)
 export const getAllTeachers = async (req, res) => {
   try {
     const teachers = await User.find({ role: "teacher" }).select("-password");
-    return res.json(teachers);  // 👈 MUST RETURN ARRAY
+    return res.status(200).json(teachers);
   } catch (err) {
     console.error("getAllTeachers error:", err);
     return res.status(500).json({ error: "Failed to fetch teachers" });
   }
 };
 
-
-
-// GET /api/auth/me - profile of logged in user (student/teacher/admin)
+// GET LOGGED USER PROFILE
 export const getMe = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -178,20 +168,20 @@ export const getMe = async (req, res) => {
   }
 };
 
-// PUT /api/auth/update - update logged-in user's editable fields
+// UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: "Not authorized" });
 
-    const { name, department, phone } = req.body;
-
     if (req.user.role === "admin") return res.status(403).json({ error: "Admin cannot update this endpoint" });
 
+    const { name, department, phone } = req.body;
+
     const updates = {};
-    if (typeof name === "string") updates.name = name.trim();
-    if (typeof department === "string") updates.department = department.trim();
-    if (typeof phone === "string") updates.phone = phone.trim();
+    if (name) updates.name = name.trim();
+    if (department) updates.department = department.trim();
+    if (phone) updates.phone = phone.trim();
 
     const updated = await User.findByIdAndUpdate(userId, updates, { new: true, runValidators: true }).select("-password");
     if (!updated) return res.status(404).json({ error: "User not found" });
